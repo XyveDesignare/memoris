@@ -2,219 +2,294 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memoris</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Instagram</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-        body { background-color: #fafafa; color: #262626; }
+        body { background-color: #ffffff; color: #000000; transition: background 0.3s, color 0.3s; padding-bottom: 60px; }
+        
+        /* --- DARK MODE --- */
+        body.dark-mode { background-color: #000000; color: #f5f5f5; }
+        body.dark-mode .sidebar-left, body.dark-mode .mobile-header, body.dark-mode .post, body.dark-mode .search-panel { background: #000000; border-color: #262626; }
+        body.dark-mode .story-item span, body.dark-mode .time { color: #a8a8a8; }
+        body.dark-mode .search-panel input { background: #1a1a1a; color: #fff; }
 
-        /* --- NAVBAR --- */
-        nav { position: fixed; top: 0; width: 100%; height: 60px; background: #fff; border-bottom: 1px solid #dbdbdb; display: flex; justify-content: center; z-index: 1000; }
-        .nav-con { width: 100%; max-width: 975px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 24px; font-weight: bold; font-style: italic; letter-spacing: -1px; }
-        .search { background: #efefef; padding: 7px 15px; border-radius: 8px; width: 250px; display: flex; align-items: center; }
-        .search input { border: none; background: transparent; outline: none; margin-left: 10px; width: 100%; }
-        .nav-icons i { font-size: 22px; margin-left: 22px; cursor: pointer; }
+        /* --- HEADER ATAS (KHUSUS MOBILE) --- */
+        .mobile-header { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 50px; background: #fff; border-bottom: 1px solid #dbdbdb; z-index: 1000; justify-content: space-between; align-items: center; padding: 0 16px; }
+        .mobile-header .logo-mobile { font-size: 22px; font-weight: bold; font-style: italic; letter-spacing: -1px; }
+        .mobile-header .header-icons i { font-size: 20px; margin-left: 18px; cursor: pointer; }
 
-        /* --- MAIN LAYOUT --- */
-        main { margin-top: 90px; display: flex; justify-content: center; max-width: 935px; margin-left: auto; margin-right: auto; padding: 0 20px; }
-        .left-col { width: 100%; max-width: 614px; margin-right: 28px; }
+        /* --- SIDEBAR NAVIGASI KIRI (DESKTOP) & BOTTOM NAV (MOBILE) --- */
+        .sidebar-left { width: 245px; height: 100vh; border-right: 1px solid #dbdbdb; position: fixed; left: 0; top: 0; padding: 25px 12px; display: flex; flex-direction: column; justify-content: space-between; background: #fff; z-index: 1000; }
+        .brand-logo { font-size: 24px; font-weight: bold; font-style: italic; padding-left: 12px; margin-bottom: 30px; cursor: pointer; text-decoration: none; color: inherit; }
+        .nav-menu { display: flex; flex-direction: column; gap: 8px; }
+        .nav-item { display: flex; align-items: center; padding: 12px; border-radius: 8px; cursor: pointer; text-decoration: none; color: inherit; font-size: 16px; transition: background 0.2s; }
+        .nav-item:hover { background: rgba(0,0,0,0.05); }
+        body.dark-mode .nav-item:hover { background: rgba(255,255,255,0.1); }
+        .nav-item i { font-size: 24px; width: 30px; margin-right: 16px; }
+        .nav-item span { font-weight: 500; }
 
-        /* --- STORIES --- */
-        .stories-box { background: #fff; border: 1px solid #dbdbdb; border-radius: 8px; padding: 16px 0; display: flex; overflow-x: auto; margin-bottom: 24px; scrollbar-width: none; }
-        .stories-box::-webkit-scrollbar { display: none; }
-        .story-item { min-width: 80px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-        .ring { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); padding: 2px; margin-bottom: 5px; }
-        .ring img { width: 100%; height: 100%; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
-        .story-item span { font-size: 12px; width: 70px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* --- SEARCH SLIDE PANEL --- */
+        .search-panel { position: fixed; left: -400px; top: 0; width: 395px; height: 100vh; background: #fff; border-right: 1px solid #dbdbdb; z-index: 900; padding: 25px 20px; transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 4px 0 24px rgba(0,0,0,0.05); }
+        .search-panel.active { left: 245px; }
+        .search-panel h2 { font-size: 24px; margin-bottom: 25px; font-weight: 600; }
+        .search-panel input { width: 100%; padding: 10px 16px; border: none; background: #efefef; border-radius: 8px; outline: none; font-size: 16px; }
 
-        /* --- POSTS --- */
-        .post { background: #fff; border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 24px; }
-        .post-head { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
-        .post-head .user { display: flex; align-items: center; font-weight: 600; font-size: 14px; }
-        .post-head img { width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; object-fit: cover; }
-        .post-img img { width: 100%; display: block; max-height: 600px; object-fit: cover; }
-        .post-foot { padding: 12px 16px; }
-        .btns { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .btns i { font-size: 24px; margin-right: 15px; cursor: pointer; }
-        .post-likes { font-weight: 600; font-size: 14px; margin-bottom: 5px; }
-        .caption { font-size: 14px; line-height: 1.4; }
-        .caption b { margin-right: 5px; }
-        .time { font-size: 10px; color: #8e8e8e; text-transform: uppercase; margin-top: 10px; }
+        /* --- MAIN WRAPPER & LAYOUT --- */
+        .main-wrapper { margin-left: 245px; width: calc(100% - 245px); display: flex; justify-content: center; padding-top: 30px; }
+        .content-container { width: 100%; max-width: 935px; display: flex; padding: 0 20px; gap: 64px; }
+        .feed-column { width: 100%; max-width: 630px; }
 
-        /* --- SIDEBAR --- */
-        .sidebar { width: 320px; position: sticky; top: 90px; height: fit-content; }
-        @media (max-width: 1000px) { .sidebar { display: none; } .left-col { margin-right: 0; } }
+        /* --- STORIES BOX --- */
+        .stories-container { display: flex; gap: 16px; padding: 10px 0; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid #efefef; margin-bottom: 10px; }
+        body.dark-mode .stories-container { border-color: #121212; }
+        .stories-container::-webkit-scrollbar { display: none; }
+        .story-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; min-width: 75px; }
+        .story-ring { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); padding: 2px; margin-bottom: 4px; }
+        .story-ring img { width: 100%; height: 100%; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
+        body.dark-mode .story-ring img { border-color: #000; }
+        .story-item span { font-size: 11px; text-align: center; width: 68px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* --- STORY MODAL --- */
-        #story-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
-        .modal-content { position: relative; display: flex; gap: 15px; max-width: 90%; }
-        .modal-content img { height: 75vh; max-width: 450px; border-radius: 10px; border: 1px solid #fff; object-fit: cover; }
-        .close-modal { position: absolute; top: -45px; right: 0; color: #fff; font-size: 35px; cursor: pointer; }
+        /* --- FEED POSTS --- */
+        .post { background: #fff; border-bottom: 1px solid #dbdbdb; padding-bottom: 15px; margin-bottom: 20px; }
+        .post-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 4px; }
+        .post-header .user-info { display: flex; align-items: center; font-weight: 600; font-size: 14px; cursor: pointer; }
+        .post-header img { width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; object-fit: cover; }
+        .post-image-box { width: 100%; overflow: hidden; position: relative; }
+        .post-image-box img { width: 100%; display: block; max-height: 580px; object-fit: cover; }
+        
+        .post-actions { display: flex; justify-content: space-between; padding: 10px 4px; }
+        .post-actions i { font-size: 24px; cursor: pointer; transition: transform 0.1s ease; }
+        .left-actions i { margin-right: 16px; }
+        
+        .likes-count { font-weight: 600; font-size: 14px; padding: 0 4px; margin-bottom: 4px; }
+        .post-caption { font-size: 14px; padding: 0 4px; line-height: 1.4; }
+        .post-caption b { cursor: pointer; margin-right: 4px; }
+        .time { font-size: 11px; color: #8e8e8e; text-transform: uppercase; padding: 0 4px; margin-top: 6px; }
+
+        /* --- SIDEBAR KANAN (SUGGESTIONS) --- */
+        .sidebar-right { width: 320px; position: sticky; top: 30px; height: fit-content; }
+        .my-profile { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; font-size: 14px; }
+        .my-profile img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
+        .suggest-title { display: flex; justify-content: space-between; font-weight: 600; color: #8e8e8e; font-size: 14px; margin-bottom: 15px; }
+        .suggest-user { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+        .suggest-user img { width: 32px; height: 32px; border-radius: 50%; margin-right: 12px; object-fit: cover; }
+        .action-link { color: #0095f6; font-size: 12px; font-weight: 600; text-decoration: none; }
+
+        /* --- DIALOG MODAL STORY --- */
+        #story-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 5000; justify-content: center; align-items: center; flex-direction: column; }
+        .modal-container { position: relative; display: flex; gap: 10px; width: 100%; max-width: 450px; justify-content: center; }
+        .modal-container img { height: 75vh; width: 85vw; max-width: 420px; border-radius: 8px; object-fit: cover; }
+        .close-btn { position: absolute; top: -45px; right: 20px; color: #fff; font-size: 36px; cursor: pointer; }
+
+        /* ==========================================
+           RESPONSIF TAMPILAN HP (MOBILE LAYOUT)
+           ========================================== */
+        @media (max-width: 1160px) { .sidebar-right { display: none; } }
+        
+        @media (max-width: 768px) {
+            body { padding-top: 50px; padding-bottom: 50px; } /* Beri ruang untuk header & navbar HP */
+            
+            /* Sembunyikan sidebar desktop, ganti ke mode bottom bar */
+            .sidebar-left { width: 100%; height: 50px; border-right: none; border-top: 1px solid #dbdbdb; top: auto; bottom: 0; padding: 0 10px; flex-direction: row; }
+            .brand-logo, .nav-item span, .nav-menu:last-child { display: none; } /* hilangkan tulisan teks & tombol ganti tema di menu utama */
+            .nav-menu { flex-direction: row; width: 100%; justify-content: space-around; align-items: center; }
+            .nav-item { padding: 8px; }
+            .nav-item i { margin-right: 0; font-size: 22px; }
+
+            /* Aktifkan Header Atas Khas HP */
+            .mobile-header { display: flex; }
+            
+            /* Sesuaikan Konten Utama Tengah */
+            .main-wrapper { margin-left: 0; width: 100%; padding-top: 10px; }
+            .content-container { padding: 0; gap: 0; }
+            .post { border-bottom: 1px solid #dbdbdb; }
+            .post-image-box img { max-height: 480px; }
+            
+            /* Set letak panel pencarian di HP agar full screen */
+            .search-panel { top: 50px; left: 0; width: 100%; height: calc(100vh - 100px); display: none; box-shadow: none; border-right: none; }
+            .search-panel.active { display: block; left: 0; z-index: 2000; }
+
+            /* Modal Story Menyesuaikan Layar HP */
+            .modal-container img { height: 70vh; width: 90vw; }
+            .close-btn { top: -40px; right: 15px; }
+        }
     </style>
 </head>
 <body>
 
-    <nav>
-        <div class="nav-con">
-            <div class="logo">Agronomi XXXIII</div>
-            <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Cari"></div>
-            <div class="nav-icons">
-                <i class="fa-solid fa-house"></i>
-                <i class="fa-regular fa-paper-plane"></i>
-                <i class="fa-regular fa-compass"></i>
-                <i class="fa-regular fa-heart"></i>
+    <div class="mobile-header">
+        <div class="logo-mobile">Instagram</div>
+        <div class="header-icons">
+            <i class="fa-regular fa-heart" onclick="alert('Notifikasi HP diklik')"></i>
+            <i class="fa-regular fa-paper-plane" onclick="alert('Pesan DM HP diklik')"></i>
+            <i class="fa-solid fa-circle-half-stroke" onclick="toggleDarkMode()" title="Ubah Tema"></i>
+        </div>
+    </div>
+
+    <div class="sidebar-left">
+        <div class="nav-menu">
+            <a href="#" class="brand-logo">Instagram</a>
+            <div class="nav-item" onclick="resetFeed()"><i class="fa-solid fa-house"></i><span>Beranda</span></div>
+            <div class="nav-item" onclick="toggleSearchPanel()"><i class="fa-solid fa-magnifying-glass"></i><span>Cari</span></div>
+            <div class="nav-item" onclick="alert('Menu Reels')"><i class="fa-solid fa-clapperboard"></i><span>Reels</span></div>
+            <div class="nav-item" onclick="alert('Menu Buat Post')"><i class="fa-regular fa-square-plus"></i><span>Buat</span></div>
+            <div class="nav-item" onclick="alert('Menu Profil')"><i class="fa-regular fa-user"></i><span>Profil</span></div>
+        </div>
+        <div class="nav-menu">
+            <div class="nav-item" onclick="toggleDarkMode()"><i class="fa-solid fa-moon"></i><span>Ubah Mode</span></div>
+        </div>
+    </div>
+
+    <div class="search-panel" id="searchPanel">
+        <h2>Cari</h2>
+        <input type="text" placeholder="Cari user (cth: koding_asik)..." id="searchInput" oninput="liveSearch(this.value)">
+    </div>
+
+    <div class="main-wrapper">
+        <div class="content-container">
+            
+            <div class="feed-column">
+                <div class="stories-container" id="stories-box"></div>
+                <div id="feed-box"></div>
             </div>
-        </div>
-    </nav>
 
-    <main>
-        <div class="left-col">
-            <div class="stories-box" id="stories-wrapper"></div>
-            <div id="feed-wrapper"></div>
-        </div>
+            <div class="sidebar-right">
+                <div class="my-profile">
+                    <div style="display:flex; align-items:center;">
+                        <img src="https://picsum.photos/id/64/150/150" style="margin-right:12px;">
+                        <div><strong>kamu_keren</strong><br><span style="color:#8e8e8e">Nama Pengguna</span></div>
+                    </div>
+                    <a href="#" class="action-link" onclick="alert('Ganti Akun')">Beralih</a>
+                </div>
+                <div class="suggest-title">
+                    <span>Disarankan untuk Anda</span>
+                </div>
+                <div id="suggest-box"></div>
+            </div>
 
-        <div class="sidebar">
-            <p style="font-weight: 600; color: #8e8e8e; font-size: 14px;">Disarankan untuk Anda</p>
-            <div id="suggest-wrapper" style="margin-top: 15px;"></div>
         </div>
-    </main>
+    </div>
 
     <div id="story-modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeStory()">&times;</span>
-            <div id="modal-body" style="display: flex; gap: 15px;"></div>
+        <div class="modal-container">
+            <span class="close-btn" onclick="closeStory()">&times;</span>
+            <div id="modal-body" style="display: flex; gap: 10px;"></div>
         </div>
-        <p style="color:white; margin-top:20px; font-weight:600; font-size: 16px;" id="story-username"></p>
+        <p style="color:white; margin-top:15px; font-weight:600; font-size: 14px;" id="story-username"></p>
     </div>
 
     <script>
-        // Data Nama User
-        const users = ["Ibnu Syafari", "dapur_mama", "koding_asik", "fotografer_amatir", "pecinta_kucing", "berita_hari_ini", "musik_indie", "pecinta_seni", "olahraga_yuk", "gamer_pro"];
-
-        // ========================================================
-        // TEMPAT MENGGANTI LINK FOTO ANDA (BIAR TIDAK SAMA SEMUA)
-        // ========================================================
-
-        // 1. SILAHKAN GANTI LINK FOTO PROFIL DI BAWAH INI (Bisa beda tiap baris)
+        // Array Data Gambar Independen (Ganti link di dalam kutip ini dengan link foto Anda)
+        const users = ["petualang_tangguh", "dapur_mama", "koding_asik", "fotografer_amatir", "pecinta_kucing", "berita_hari_ini", "musik_indie", "pecinta_seni", "olahraga_yuk", "gamer_pro"];
+        
         const fotoProfilSet = [
-            "https://res.cloudinary.com/dyxfyigrl/image/upload/v1782638650/IMG_4164_lfazk8.webp", // Foto Profil User 1
-            "https://picsum.photos/id/22/150/150", // Foto Profil User 2
-            "https://picsum.photos/id/33/150/150", // Foto Profil User 3
-            "https://picsum.photos/id/44/150/150", // Foto Profil User 4
-            "https://picsum.photos/id/55/150/150", // Foto Profil User 5
-            "https://picsum.photos/id/66/150/150", // Foto Profil User 6
-            "https://picsum.photos/id/77/150/150", // Foto Profil User 7
-            "https://picsum.photos/id/88/150/150", // Foto Profil User 8
-            "https://picsum.photos/id/99/150/150", // Foto Profil User 9
-            "https://picsum.photos/id/101/150/150" // Foto Profil User 10
+            "https://picsum.photos/id/11/150/150", "https://picsum.photos/id/22/150/150", "https://picsum.photos/id/33/150/150", 
+            "https://picsum.photos/id/44/150/150", "https://picsum.photos/id/55/150/150", "https://picsum.photos/id/66/150/150", 
+            "https://picsum.photos/id/77/150/150", "https://picsum.photos/id/88/150/150", "https://picsum.photos/id/99/150/150", 
+            "https://picsum.photos/id/101/150/150"
         ];
 
-        // 2. SILAHKAN GANTI LINK FOTO POSTINGAN FEED DI BAWAH INI (10 Postingan Berbeda)
         const fotoPostinganSet = [
-            "https://res.cloudinary.com/dyxfyigrl/image/upload/v1782639737/IMG_4718_zuk6ey.webp",  // Foto Postingan 1
-            "https://picsum.photos/id/20/600/600",  // Foto Postingan 2
-            "https://picsum.photos/id/30/600/600",  // Foto Postingan 3
-            "https://picsum.photos/id/40/600/600",  // Foto Postingan 4
-            "https://picsum.photos/id/50/600/600",  // Foto Postingan 5
-            "https://picsum.photos/id/60/600/600",  // Foto Postingan 6
-            "https://picsum.photos/id/70/600/600",  // Foto Postingan 7
-            "https://picsum.photos/id/80/600/600",  // Foto Postingan 8
-            "https://picsum.photos/id/90/600/600",  // Foto Postingan 9
-            "https://picsum.photos/id/100/600/600"  // Foto Postingan 10
+            "https://picsum.photos/id/10/600/600", "https://picsum.photos/id/20/600/600", "https://picsum.photos/id/30/600/600", 
+            "https://picsum.photos/id/40/600/600", "https://picsum.photos/id/50/600/600", "https://picsum.photos/id/60/600/600", 
+            "https://picsum.photos/id/70/600/600", "https://picsum.photos/id/80/600/600", "https://picsum.photos/id/90/600/600", 
+            "https://picsum.photos/id/100/600/600"
         ];
 
-        // 3. SILAHKAN GANTI LINK ISI FOTO STORY SAAT DIKLIK (Format: [Foto_Kiri, Foto_Kanan])
         const fotoStorySet = [
-            ["https://picsum.photos/id/12/400/700", "https://picsum.photos/id/13/400/700"], // Isi Story User 1
-            ["https://picsum.photos/id/14/400/700", "https://picsum.photos/id/15/400/700"], // Isi Story User 2
-            ["https://picsum.photos/id/16/400/700", "https://picsum.photos/id/17/400/700"], // Isi Story User 3
-            ["https://picsum.photos/id/18/400/700", "https://picsum.photos/id/19/400/700"], // Isi Story User 4
-            ["https://picsum.photos/id/21/400/700", "https://picsum.photos/id/23/400/700"], // Isi Story User 5
-            ["https://picsum.photos/id/24/400/700", "https://picsum.photos/id/25/400/700"], // Isi Story User 6
-            ["https://picsum.photos/id/26/400/700", "https://picsum.photos/id/27/400/700"], // Isi Story User 7
-            ["https://picsum.photos/id/28/400/700", "https://picsum.photos/id/29/400/700"], // Isi Story User 8
-            ["https://picsum.photos/id/31/400/700", "https://picsum.photos/id/32/400/700"], // Isi Story User 9
-            ["https://picsum.photos/id/34/400/700", "https://picsum.photos/id/35/400/700"]  // Isi Story User 10
+            ["https://picsum.photos/id/26/400/700", "https://picsum.photos/id/27/400/700"],
+            ["https://picsum.photos/id/12/400/700", "https://picsum.photos/id/13/400/700"],
+            ["https://picsum.photos/id/14/400/700", "https://picsum.photos/id/15/400/700"],
+            ["https://picsum.photos/id/18/400/700", "https://picsum.photos/id/19/400/700"],
+            ["https://picsum.photos/id/21/400/700", "https://picsum.photos/id/23/400/700"],
+            ["https://picsum.photos/id/24/400/700", "https://picsum.photos/id/25/400/700"],
+            ["https://picsum.photos/id/16/400/700", "https://picsum.photos/id/17/400/700"],
+            ["https://picsum.photos/id/28/400/700", "https://picsum.photos/id/29/400/700"],
+            ["https://picsum.photos/id/31/400/700", "https://picsum.photos/id/32/400/700"],
+            ["https://picsum.photos/id/34/400/700", "https://picsum.photos/id/35/400/700"]
         ];
-        // ========================================================
 
-
-        // 1. Generate 33 Stories (Dipetakan agar link fotonya bergantian sesuai urutan data Anda)
-        const storiesWrapper = document.getElementById('stories-wrapper');
+        // Pembuat 33 Komponen Bulatan Story
+        const storiesBox = document.getElementById('stories-box');
         for (let i = 1; i <= 33; i++) {
             const isTwoPhotos = i % 5 === 0; 
             const username = `user_ke_${i}`;
-            const letIndex = (i - 1) % fotoProfilSet.length; // Mengulang index jika sudah lebih dari batas array profil
+            const idx = (i - 1) % fotoProfilSet.length;
             
-            storiesWrapper.innerHTML += `
-                <div class="story-item" onclick="openStory('${username}', ${isTwoPhotos}, ${letIndex})">
-                    <div class="ring">
-                        <img src="${fotoProfilSet[letIndex]}" alt="user">
-                    </div>
+            storiesBox.innerHTML += `
+                <div class="story-item" onclick="openStory('${username}', ${isTwoPhotos}, ${idx})">
+                    <div class="story-ring"><img src="${fotoProfilSet[idx]}" alt="user"></div>
                     <span>${username}</span>
                 </div>
             `;
         }
 
-        // 2. Generate 10 Postingan Feed (Foto profil & Konten Post terpisah secara presisi)
-        const feedWrapper = document.getElementById('feed-wrapper');
-        for (let j = 1; j <= 10; j++) {
-            const userIndex = (j - 1) % users.length;
-            const randomUser = users[userIndex];
-            const profilePic = fotoProfilSet[userIndex];
-            const postPic = fotoPostinganSet[j - 1]; // Mengambil foto postingan murni sesuai nomor urut postingan
-            const initialLikes = Math.floor(Math.random() * 5000);
+        // Pembuat Konten Postingan Feed Berbeda
+        function renderFeed(filterUser = "") {
+            const feedBox = document.getElementById('feed-box');
+            feedBox.innerHTML = '';
             
-            feedWrapper.innerHTML += `
-                <div class="post">
-                    <div class="post-head">
-                        <div class="user">
-                            <img src="${profilePic}" alt="user">
-                            <span>${randomUser}</span>
+            for (let j = 1; j <= 10; j++) {
+                const uIdx = (j - 1) % users.length;
+                const author = users[uIdx];
+                
+                if (filterUser && !author.toLowerCase().includes(filterUser.toLowerCase())) continue;
+
+                const profPic = fotoProfilSet[uIdx];
+                const postPic = fotoPostinganSet[j - 1];
+                const likes = Math.floor(Math.random() * 8000) + 150;
+                
+                feedBox.innerHTML += `
+                    <div class="post">
+                        <div class="post-header">
+                            <div class="user-info">
+                                <img src="${profPic}" alt="user">
+                                <span>${author}</span>
+                            </div>
+                            <i class="fa-solid fa-ellipsis" style="cursor:pointer" onclick="alert('Aksi post menu')"></i>
                         </div>
-                        <i class="fa-solid fa-ellipsis"></i>
-                    </div>
-                    <div class="post-img">
-                        <img src="${postPic}" alt="Post">
-                    </div>
-                    <div class="post-foot">
-                        <div class="btns">
-                            <div>
-                                <i class="fa-regular fa-heart" data-likes="${initialLikes}" onclick="toggleLike(this)"></i>
-                                <i class="fa-regular fa-comment"></i>
-                                <i class="fa-regular fa-paper-plane"></i>
+                        <div class="post-image-box">
+                            <img src="${postPic}" alt="Content">
+                        </div>
+                        <div class="post-actions">
+                            <div class="left-actions">
+                                <i class="fa-regular fa-heart" data-likes="${likes}" onclick="toggleLike(this)"></i>
+                                <i class="fa-regular fa-comment" onclick="alert('Kolom komentar dibuka')"></i>
+                                <i class="fa-regular fa-paper-plane" onclick="alert('Bagikan pos')"></i>
                             </div>
                             <i class="fa-regular fa-bookmark" onclick="toggleBookmark(this)"></i>
                         </div>
-                        <div class="post-likes">${initialLikes.toLocaleString('id-ID')} suka</div>
-                        <div class="caption">
-                            <b>${randomUser}</b> Menikmati momen berharga dengan foto terbaik hari ini! #vibe #kustom
+                        <div class="likes-count">${likes.toLocaleString('id-ID')} suka</div>
+                        <div class="post-caption">
+                            <b>${author}</b> Tampilan tata letak kustom kini otomatis menyesuaikan resolusi layar HP Anda! 📱✨ #responsive #mobile
                         </div>
-                        <div class="time">${j} jam yang lalu</div>
+                        <div class="time">${j} hari yang lalu</div>
                     </div>
-                </div>
-            `;
+                `;
+            }
         }
+        renderFeed();
 
-        // 3. Generate Sidebar Suggestion (Menggunakan sisa foto profil unik)
-        const suggestWrapper = document.getElementById('suggest-wrapper');
-        users.slice(0, 5).forEach((u, idx) => {
-            suggestWrapper.innerHTML += `
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                    <div style="display:flex; align-items:center; font-size:14px;">
-                        <img src="${fotoProfilSet[idx]}" style="width:32px; height:32px; border-radius:50%; margin-right:10px; object-fit: cover;">
-                        <div><b>${u}</b><br><small style="color:#8e8e8e">Populer</small></div>
+        // Pembuat Rekomendasi Akun (Desktop)
+        const suggestBox = document.getElementById('suggest-box');
+        users.slice(0, 5).forEach((u, i) => {
+            suggestBox.innerHTML += `
+                <div class="suggest-user">
+                    <div style="display:flex; align-items:center;">
+                        <img src="${fotoProfilSet[i]}" alt="avatar">
+                        <div><strong>${u}</strong><br><span style="color:#8e8e8e; font-size:12px;">Populer</span></div>
                     </div>
-                    <a href="#" style="color:#0095f6; font-size:12px; font-weight:600; text-decoration:none;" onclick="toggleFollow(this, event)">Ikuti</a>
+                    <a href="#" class="action-link" style="text-decoration:none; font-weight:600;" onclick="toggleFollow(this, event)">Ikuti</a>
                 </div>
             `;
         });
 
-        // FUNGSI INTERAKSI INTERAKTIF
+        // --- MANAJEMEN LOGIKA TOMBOL ---
         function toggleLike(btn) {
-            const likesContainer = btn.closest('.post-foot').querySelector('.post-likes');
+            const container = btn.closest('.post');
+            const txtCount = container.querySelector('.likes-count');
             let currentLikes = parseInt(btn.getAttribute('data-likes'));
 
             if (btn.classList.contains('fa-regular')) {
@@ -223,11 +298,11 @@
                 currentLikes += 1;
             } else {
                 btn.classList.replace('fa-solid', 'fa-regular');
-                btn.style.color = '#262626';
+                btn.style.color = 'inherit';
                 currentLikes -= 1;
             }
             btn.setAttribute('data-likes', currentLikes);
-            likesContainer.innerText = currentLikes.toLocaleString('id-ID') + " suka";
+            txtCount.innerText = currentLikes.toLocaleString('id-ID') + " suka";
         }
 
         function toggleBookmark(btn) {
@@ -238,49 +313,59 @@
             }
         }
 
-        function toggleFollow(element, event) {
-            event.preventDefault();
-            if (element.innerText === "Ikuti") {
-                element.innerText = "Mengikuti";
-                element.style.color = "#262626";
+        function toggleFollow(el, e) {
+            e.preventDefault();
+            if (el.innerText === "Ikuti") {
+                el.innerText = "Mengikuti";
+                el.style.color = "#8e8e8e";
             } else {
-                element.innerText = "Ikuti";
-                element.style.color = "#0095f6";
+                el.innerText = "Ikuti";
+                el.style.color = "#0095f6";
             }
         }
 
-        // Fungsi membuka modal kustom story berdasarkan index pengklik
+        function toggleSearchPanel() {
+            const panel = document.getElementById('searchPanel');
+            panel.classList.toggle('active');
+            if(panel.classList.contains('active')) document.getElementById('searchInput').focus();
+        }
+
+        function liveSearch(val) { renderFeed(val); }
+
+        function resetFeed() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchPanel').classList.remove('active');
+            renderFeed();
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
         function openStory(username, isTwo, index) {
             const modal = document.getElementById('story-modal');
             const modalBody = document.getElementById('modal-body');
-            const storyUser = document.getElementById('story-username');
-            
-            modalBody.innerHTML = ''; 
-
-            // Mengambil aset dari array story kustom Anda
-            const storyPics = fotoStorySet[index];
+            document.getElementById('story-username').innerText = "@" + username;
+            modalBody.innerHTML = '';
 
             const img1 = document.createElement('img');
-            img1.src = storyPics[0]; 
+            img1.src = fotoStorySet[index][0];
             modalBody.appendChild(img1);
 
             if(isTwo) {
                 const img2 = document.createElement('img');
-                img2.src = storyPics[1]; 
+                img2.src = fotoStorySet[index][1];
                 modalBody.appendChild(img2);
             }
-
-            storyUser.innerText = "@" + username;
             modal.style.display = 'flex';
         }
 
-        function closeStory() {
-            document.getElementById('story-modal').style.display = 'none';
-        }
+        function closeStory() { document.getElementById('story-modal').style.display = 'none'; }
 
-        window.onclick = function(event) {
+        window.onclick = function(e) {
             const modal = document.getElementById('story-modal');
-            if (event.target == modal) closeStory();
+            if (e.target == modal) closeStory();
         }
     </script>
 </body>
