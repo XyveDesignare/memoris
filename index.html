@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memoris</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+        body { background-color: #fafafa; color: #262626; }
+
+        /* --- NAVBAR --- */
+        nav { position: fixed; top: 0; width: 100%; height: 60px; background: #fff; border-bottom: 1px solid #dbdbdb; display: flex; justify-content: center; z-index: 1000; }
+        .nav-con { width: 100%; max-width: 975px; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; font-style: italic; letter-spacing: -1px; }
+        .search { background: #efefef; padding: 7px 15px; border-radius: 8px; width: 250px; display: flex; align-items: center; }
+        .search input { border: none; background: transparent; outline: none; margin-left: 10px; width: 100%; }
+        .nav-icons i { font-size: 22px; margin-left: 22px; cursor: pointer; }
+
+        /* --- MAIN LAYOUT --- */
+        main { margin-top: 90px; display: flex; justify-content: center; max-width: 935px; margin-left: auto; margin-right: auto; padding: 0 20px; }
+        .left-col { width: 100%; max-width: 614px; margin-right: 28px; }
+
+        /* --- STORIES --- */
+        .stories-box { background: #fff; border: 1px solid #dbdbdb; border-radius: 8px; padding: 16px 0; display: flex; overflow-x: auto; margin-bottom: 24px; scrollbar-width: none; }
+        .stories-box::-webkit-scrollbar { display: none; }
+        .story-item { min-width: 80px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .ring { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); padding: 2px; margin-bottom: 5px; }
+        .ring img { width: 100%; height: 100%; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
+        .story-item span { font-size: 12px; width: 70px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* --- POSTS --- */
+        .post { background: #fff; border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 24px; }
+        .post-head { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+        .post-head .user { display: flex; align-items: center; font-weight: 600; font-size: 14px; }
+        .post-head img { width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; object-fit: cover; }
+        .post-img img { width: 100%; display: block; max-height: 600px; object-fit: cover; }
+        .post-foot { padding: 12px 16px; }
+        .btns { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .btns i { font-size: 24px; margin-right: 15px; cursor: pointer; }
+        .post-likes { font-weight: 600; font-size: 14px; margin-bottom: 5px; }
+        .caption { font-size: 14px; line-height: 1.4; }
+        .caption b { margin-right: 5px; }
+        .time { font-size: 10px; color: #8e8e8e; text-transform: uppercase; margin-top: 10px; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { width: 320px; position: sticky; top: 90px; height: fit-content; }
+        @media (max-width: 1000px) { .sidebar { display: none; } .left-col { margin-right: 0; } }
+
+        /* --- STORY MODAL --- */
+        #story-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
+        .modal-content { position: relative; display: flex; gap: 15px; max-width: 90%; }
+        .modal-content img { height: 75vh; max-width: 450px; border-radius: 10px; border: 1px solid #fff; object-fit: cover; }
+        .close-modal { position: absolute; top: -45px; right: 0; color: #fff; font-size: 35px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-con">
+            <div class="logo">Agronomi XXXIII</div>
+            <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input type="text" placeholder="Cari"></div>
+            <div class="nav-icons">
+                <i class="fa-solid fa-house"></i>
+                <i class="fa-regular fa-paper-plane"></i>
+                <i class="fa-regular fa-compass"></i>
+                <i class="fa-regular fa-heart"></i>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="left-col">
+            <div class="stories-box" id="stories-wrapper"></div>
+            <div id="feed-wrapper"></div>
+        </div>
+
+        <div class="sidebar">
+            <p style="font-weight: 600; color: #8e8e8e; font-size: 14px;">Disarankan untuk Anda</p>
+            <div id="suggest-wrapper" style="margin-top: 15px;"></div>
+        </div>
+    </main>
+
+    <div id="story-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeStory()">&times;</span>
+            <div id="modal-body" style="display: flex; gap: 15px;"></div>
+        </div>
+        <p style="color:white; margin-top:20px; font-weight:600; font-size: 16px;" id="story-username"></p>
+    </div>
+
+    <script>
+        // Data Nama User
+        const users = ["Ibnu Syafari", "dapur_mama", "koding_asik", "fotografer_amatir", "pecinta_kucing", "berita_hari_ini", "musik_indie", "pecinta_seni", "olahraga_yuk", "gamer_pro"];
+
+        // ========================================================
+        // TEMPAT MENGGANTI LINK FOTO ANDA (BIAR TIDAK SAMA SEMUA)
+        // ========================================================
+
+        // 1. SILAHKAN GANTI LINK FOTO PROFIL DI BAWAH INI (Bisa beda tiap baris)
+        const fotoProfilSet = [
+            "https://res.cloudinary.com/dyxfyigrl/image/upload/v1782638650/IMG_4164_lfazk8.webp", // Foto Profil User 1
+            "https://picsum.photos/id/22/150/150", // Foto Profil User 2
+            "https://picsum.photos/id/33/150/150", // Foto Profil User 3
+            "https://picsum.photos/id/44/150/150", // Foto Profil User 4
+            "https://picsum.photos/id/55/150/150", // Foto Profil User 5
+            "https://picsum.photos/id/66/150/150", // Foto Profil User 6
+            "https://picsum.photos/id/77/150/150", // Foto Profil User 7
+            "https://picsum.photos/id/88/150/150", // Foto Profil User 8
+            "https://picsum.photos/id/99/150/150", // Foto Profil User 9
+            "https://picsum.photos/id/101/150/150" // Foto Profil User 10
+        ];
+
+        // 2. SILAHKAN GANTI LINK FOTO POSTINGAN FEED DI BAWAH INI (10 Postingan Berbeda)
+        const fotoPostinganSet = [
+            "https://res.cloudinary.com/dyxfyigrl/image/upload/v1782639737/IMG_4718_zuk6ey.webp",  // Foto Postingan 1
+            "https://picsum.photos/id/20/600/600",  // Foto Postingan 2
+            "https://picsum.photos/id/30/600/600",  // Foto Postingan 3
+            "https://picsum.photos/id/40/600/600",  // Foto Postingan 4
+            "https://picsum.photos/id/50/600/600",  // Foto Postingan 5
+            "https://picsum.photos/id/60/600/600",  // Foto Postingan 6
+            "https://picsum.photos/id/70/600/600",  // Foto Postingan 7
+            "https://picsum.photos/id/80/600/600",  // Foto Postingan 8
+            "https://picsum.photos/id/90/600/600",  // Foto Postingan 9
+            "https://picsum.photos/id/100/600/600"  // Foto Postingan 10
+        ];
+
+        // 3. SILAHKAN GANTI LINK ISI FOTO STORY SAAT DIKLIK (Format: [Foto_Kiri, Foto_Kanan])
+        const fotoStorySet = [
+            ["https://picsum.photos/id/12/400/700", "https://picsum.photos/id/13/400/700"], // Isi Story User 1
+            ["https://picsum.photos/id/14/400/700", "https://picsum.photos/id/15/400/700"], // Isi Story User 2
+            ["https://picsum.photos/id/16/400/700", "https://picsum.photos/id/17/400/700"], // Isi Story User 3
+            ["https://picsum.photos/id/18/400/700", "https://picsum.photos/id/19/400/700"], // Isi Story User 4
+            ["https://picsum.photos/id/21/400/700", "https://picsum.photos/id/23/400/700"], // Isi Story User 5
+            ["https://picsum.photos/id/24/400/700", "https://picsum.photos/id/25/400/700"], // Isi Story User 6
+            ["https://picsum.photos/id/26/400/700", "https://picsum.photos/id/27/400/700"], // Isi Story User 7
+            ["https://picsum.photos/id/28/400/700", "https://picsum.photos/id/29/400/700"], // Isi Story User 8
+            ["https://picsum.photos/id/31/400/700", "https://picsum.photos/id/32/400/700"], // Isi Story User 9
+            ["https://picsum.photos/id/34/400/700", "https://picsum.photos/id/35/400/700"]  // Isi Story User 10
+        ];
+        // ========================================================
+
+
+        // 1. Generate 33 Stories (Dipetakan agar link fotonya bergantian sesuai urutan data Anda)
+        const storiesWrapper = document.getElementById('stories-wrapper');
+        for (let i = 1; i <= 33; i++) {
+            const isTwoPhotos = i % 5 === 0; 
+            const username = `user_ke_${i}`;
+            const letIndex = (i - 1) % fotoProfilSet.length; // Mengulang index jika sudah lebih dari batas array profil
+            
+            storiesWrapper.innerHTML += `
+                <div class="story-item" onclick="openStory('${username}', ${isTwoPhotos}, ${letIndex})">
+                    <div class="ring">
+                        <img src="${fotoProfilSet[letIndex]}" alt="user">
+                    </div>
+                    <span>${username}</span>
+                </div>
+            `;
+        }
+
+        // 2. Generate 10 Postingan Feed (Foto profil & Konten Post terpisah secara presisi)
+        const feedWrapper = document.getElementById('feed-wrapper');
+        for (let j = 1; j <= 10; j++) {
+            const userIndex = (j - 1) % users.length;
+            const randomUser = users[userIndex];
+            const profilePic = fotoProfilSet[userIndex];
+            const postPic = fotoPostinganSet[j - 1]; // Mengambil foto postingan murni sesuai nomor urut postingan
+            const initialLikes = Math.floor(Math.random() * 5000);
+            
+            feedWrapper.innerHTML += `
+                <div class="post">
+                    <div class="post-head">
+                        <div class="user">
+                            <img src="${profilePic}" alt="user">
+                            <span>${randomUser}</span>
+                        </div>
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </div>
+                    <div class="post-img">
+                        <img src="${postPic}" alt="Post">
+                    </div>
+                    <div class="post-foot">
+                        <div class="btns">
+                            <div>
+                                <i class="fa-regular fa-heart" data-likes="${initialLikes}" onclick="toggleLike(this)"></i>
+                                <i class="fa-regular fa-comment"></i>
+                                <i class="fa-regular fa-paper-plane"></i>
+                            </div>
+                            <i class="fa-regular fa-bookmark" onclick="toggleBookmark(this)"></i>
+                        </div>
+                        <div class="post-likes">${initialLikes.toLocaleString('id-ID')} suka</div>
+                        <div class="caption">
+                            <b>${randomUser}</b> Menikmati momen berharga dengan foto terbaik hari ini! #vibe #kustom
+                        </div>
+                        <div class="time">${j} jam yang lalu</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 3. Generate Sidebar Suggestion (Menggunakan sisa foto profil unik)
+        const suggestWrapper = document.getElementById('suggest-wrapper');
+        users.slice(0, 5).forEach((u, idx) => {
+            suggestWrapper.innerHTML += `
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                    <div style="display:flex; align-items:center; font-size:14px;">
+                        <img src="${fotoProfilSet[idx]}" style="width:32px; height:32px; border-radius:50%; margin-right:10px; object-fit: cover;">
+                        <div><b>${u}</b><br><small style="color:#8e8e8e">Populer</small></div>
+                    </div>
+                    <a href="#" style="color:#0095f6; font-size:12px; font-weight:600; text-decoration:none;" onclick="toggleFollow(this, event)">Ikuti</a>
+                </div>
+            `;
+        });
+
+        // FUNGSI INTERAKSI INTERAKTIF
+        function toggleLike(btn) {
+            const likesContainer = btn.closest('.post-foot').querySelector('.post-likes');
+            let currentLikes = parseInt(btn.getAttribute('data-likes'));
+
+            if (btn.classList.contains('fa-regular')) {
+                btn.classList.replace('fa-regular', 'fa-solid');
+                btn.style.color = '#ed4956';
+                currentLikes += 1;
+            } else {
+                btn.classList.replace('fa-solid', 'fa-regular');
+                btn.style.color = '#262626';
+                currentLikes -= 1;
+            }
+            btn.setAttribute('data-likes', currentLikes);
+            likesContainer.innerText = currentLikes.toLocaleString('id-ID') + " suka";
+        }
+
+        function toggleBookmark(btn) {
+            if (btn.classList.contains('fa-regular')) {
+                btn.classList.replace('fa-regular', 'fa-solid');
+            } else {
+                btn.classList.replace('fa-solid', 'fa-regular');
+            }
+        }
+
+        function toggleFollow(element, event) {
+            event.preventDefault();
+            if (element.innerText === "Ikuti") {
+                element.innerText = "Mengikuti";
+                element.style.color = "#262626";
+            } else {
+                element.innerText = "Ikuti";
+                element.style.color = "#0095f6";
+            }
+        }
+
+        // Fungsi membuka modal kustom story berdasarkan index pengklik
+        function openStory(username, isTwo, index) {
+            const modal = document.getElementById('story-modal');
+            const modalBody = document.getElementById('modal-body');
+            const storyUser = document.getElementById('story-username');
+            
+            modalBody.innerHTML = ''; 
+
+            // Mengambil aset dari array story kustom Anda
+            const storyPics = fotoStorySet[index];
+
+            const img1 = document.createElement('img');
+            img1.src = storyPics[0]; 
+            modalBody.appendChild(img1);
+
+            if(isTwo) {
+                const img2 = document.createElement('img');
+                img2.src = storyPics[1]; 
+                modalBody.appendChild(img2);
+            }
+
+            storyUser.innerText = "@" + username;
+            modal.style.display = 'flex';
+        }
+
+        function closeStory() {
+            document.getElementById('story-modal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('story-modal');
+            if (event.target == modal) closeStory();
+        }
+    </script>
+</body>
+</html>
